@@ -17,7 +17,7 @@ public class NetworkConfig {
     public AnchorPane ui;
     public NetworkConfigController controller;
     //------------------------------------------------------------------------------------------
-    private NetworkConfig() {
+    public NetworkConfig() {
         try {
             Properties properties = new Properties();
             properties.load(new FileReader(NetworkConfig.class.getResource("networkconfig.properties").getPath()));

@@ -176,5 +176,11 @@
     -fx-text-fill: white;
 }
 
+.reportitem {
+    -fx-background-color: #292929;
+}
 
+.reportitem:hover {
+    -fx-background-color: darkred;
+}
 

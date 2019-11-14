@@ -7,6 +7,7 @@ import java.util.Properties;
 public class NetworkConfig {
     public String mqttBrokerConnStr;
     public String droneTopic;
+    private static NetworkConfig instance = new NetworkConfig();
 
     public NetworkConfig() {
         try {
@@ -18,4 +19,9 @@ public class NetworkConfig {
             e.printStackTrace();
         }
     }
+    public static NetworkConfig getInstance() {
+        return instance;
+    }
+
+
 }

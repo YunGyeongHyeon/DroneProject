@@ -13,8 +13,6 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
-import kosa.team5.gcs.network.Drone;
-import kosa.team5.gcs.network.NetworkConfig;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -28,8 +26,14 @@ import syk.gcs.hudview.Hud;
 import syk.gcs.mapview.FlightMap;
 import syk.gcs.mapview.MapListener;
 import syk.gcs.messageview.MessageView;
+import kosa.team5.gcs.network.Drone;
+import kosa.team5.gcs.network.NetworkConfig;
+import kosa.team5.gcs.report.Report;
+
 
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.ResourceBundle;
 
 public class GcsMainController implements Initializable {
@@ -67,18 +71,28 @@ public class GcsMainController implements Initializable {
 	@FXML public Button btnSouth;
 	@FXML public Button btnEast;
 	@FXML public Button btnWest;
+	@FXML public Button btnReportList;
+
+
 
 	public Drone drone;
+	public String reportLat;
+	public String reportLon;
+	public List<String> reportAll = new ArrayList();
+	public Report report;
+	public int i = 0;
+
+
 	//---------------------------------------------------------------------------------
 	@Override
 	public void initialize(URL location, ResourceBundle resources) {
 		btnConnectConfig.setOnAction(btnConnectConfigEventHandler);
 		btnConnect.setOnAction(btnConnectEventHandler);
 		btnArm.setOnAction(btnArmEventHandler);
-		btnTakeoff.setOnAction(btnTakeoffEventHandler); btnTakeoff.setDisable(true); 
+		btnTakeoff.setOnAction(btnTakeoffEventHandler); btnTakeoff.setDisable(true);
 		btnLand.setOnAction(btnLandEventHandler); btnLand.setDisable(true);
 		btnRtl.setOnAction(btnRtlEventHandler);	btnRtl.setDisable(true);
-		btnManual.setOnAction(btnManualEventHandler); btnManual.setDisable(true);	
+		btnManual.setOnAction(btnManualEventHandler); btnManual.setDisable(true);
 		btnMissionMake.setOnAction(btnMissionMakeEventHandler); btnMissionMake.setDisable(true);
 		btnMissionClear.setOnAction(btnMissionClearEventHandler); btnMissionClear.setDisable(true);
 		btnMissionUpload.setOnAction(btnMissionUploadEventHandler); btnMissionUpload.setDisable(true);
@@ -100,12 +114,21 @@ public class GcsMainController implements Initializable {
 		btnEast.setOnAction(btnEastEventHandler);
 		btnWest.setOnAction(btnWestEventHandler);
 
+		btnReportList.setOnAction(btnReportListEventHandler);
+
+
+
+
 		drone = new Drone();
+		report = new Report();
 
 		initHud();
 		initMessageView();
 		initCameraView();
 		initFlightMap();
+		reciveReport();
+
+
 
 		drone.flightController.addMavJsonListener(
 				MavJsonMessage.MAVJSON_MSG_ID_HEARTBEAT,
@@ -134,6 +157,8 @@ public class GcsMainController implements Initializable {
 					}
 				}
 		);
+
+
 	}
 	//---------------------------------------------------------------------------------
 	@FXML public StackPane hudPane;
@@ -141,85 +166,85 @@ public class GcsMainController implements Initializable {
 	public void initHud() {
 		hud = new Hud();
 		hudPane.getChildren().add(hud.ui);
-		
+
 		drone.flightController.addMavJsonListener(
 				MavJsonMessage.MAVJSON_MSG_ID_HEARTBEAT,
-        		new MavJsonListener() {
-		            @Override
-		            public void receive(JSONObject jsonMessage) {
-		                hud.controller.setMode(jsonMessage.getString("mode"));
-		                hud.controller.setArm(jsonMessage.getBoolean("arm"));
-		            }
-		        });
-		
+				new MavJsonListener() {
+					@Override
+					public void receive(JSONObject jsonMessage) {
+						hud.controller.setMode(jsonMessage.getString("mode"));
+						hud.controller.setArm(jsonMessage.getBoolean("arm"));
+					}
+				});
+
 		drone.flightController.addMavJsonListener(
 				MavJsonMessage.MAVJSON_MSG_ID_GLOBAL_POSITION_INT,
-                new MavJsonListener() {
-                    @Override
-                    public void receive(JSONObject jsonMessage) {
-                    	hud.controller.setAlt(jsonMessage.getDouble("alt"));
-                    }
-                });
-		
+				new MavJsonListener() {
+					@Override
+					public void receive(JSONObject jsonMessage) {
+						hud.controller.setAlt(jsonMessage.getDouble("alt"));
+					}
+				});
+
 		drone.flightController.addMavJsonListener(
 				MavJsonMessage.MAVJSON_MSG_ID_ATTITUDE,
-                new MavJsonListener() {
-                    @Override
-                    public void receive(JSONObject jsonMessage) {
+				new MavJsonListener() {
+					@Override
+					public void receive(JSONObject jsonMessage) {
 						double yaw = jsonMessage.getDouble("yaw");
 						if(yaw < 0) {
 							yaw += 360;
 						}
-                    	hud.controller.setRollPichYaw(
+						hud.controller.setRollPichYaw(
 								jsonMessage.getDouble("roll"),
 								jsonMessage.getDouble("pitch"),
 								yaw
 						);
-                    }
-                });
-		
+					}
+				});
+
 		drone.flightController.addMavJsonListener(
 				MavJsonMessage.MAVJSON_MSG_ID_VFR_HUD,
-                new MavJsonListener() {
-                    @Override
-                    public void receive(JSONObject jsonMessage) {
-                    	hud.controller.setSpeed(
-                    			jsonMessage.getDouble("airSpeed"),
+				new MavJsonListener() {
+					@Override
+					public void receive(JSONObject jsonMessage) {
+						hud.controller.setSpeed(
+								jsonMessage.getDouble("airSpeed"),
 								jsonMessage.getDouble("groundSpeed"));
-                    }
-                });
-		
+					}
+				});
+
 		drone.flightController.addMavJsonListener(
 				MavJsonMessage.MAVJSON_MSG_ID_SYS_STATUS,
-                new MavJsonListener() {
-                    @Override
-                    public void receive(JSONObject jsonMessage) {
-                    	hud.controller.setBattery(
+				new MavJsonListener() {
+					@Override
+					public void receive(JSONObject jsonMessage) {
+						hud.controller.setBattery(
 								jsonMessage.getDouble("voltageBattery"),
 								jsonMessage.getDouble("currentBattery"),
 								jsonMessage.getInt("batteryRemaining")
 						);
-                    }
-                });
-		
+					}
+				});
+
 		drone.flightController.addMavJsonListener(
 				MavJsonMessage.MAVJSON_MSG_ID_GPS_RAW_INT,
-                new MavJsonListener() {
-                    @Override
-                    public void receive(JSONObject jsonMessage) {
-                    	hud.controller.setGpsFixed(jsonMessage.getString("fix_type"));
-                    }
-                });
-		
+				new MavJsonListener() {
+					@Override
+					public void receive(JSONObject jsonMessage) {
+						hud.controller.setGpsFixed(jsonMessage.getString("fix_type"));
+					}
+				});
+
 		drone.flightController.addMavJsonListener(
 				MavJsonMessage.MAVJSON_MSG_ID_STATUSTEXT,
-                new MavJsonListener() {
-                    private String text;
-                    @Override
-                    public void receive(JSONObject jsonMessage) {
-                    	hud.controller.setStatusText(jsonMessage.getString("text"));
-                    }
-                });
+				new MavJsonListener() {
+					private String text;
+					@Override
+					public void receive(JSONObject jsonMessage) {
+						hud.controller.setStatusText(jsonMessage.getString("text"));
+					}
+				});
 
 		hud.controller.btnCamera.setOnAction(new EventHandler<ActionEvent>() {
 			@Override
@@ -229,12 +254,12 @@ public class GcsMainController implements Initializable {
 					drone.camera0.mqttListenerSet(new ImageListener() {
 						@Override
 						public void receive(byte[] image) {
-						    hud.controller.videoImage(image);
+							hud.controller.videoImage(image);
 						}
 					});
 				} else {
-				    hud.controller.videoOff();
-				    drone.camera0.mqttListenerSet(null);
+					hud.controller.videoOff();
+					drone.camera0.mqttListenerSet(null);
 				}
 			}
 		});
@@ -284,40 +309,40 @@ public class GcsMainController implements Initializable {
 		flightMap = new FlightMap();
 		flightMap.setApiKey("AIzaSyBR_keJURT-bAce2vHKIWKNQTC-GqJWRMI");
 		centerBorderPane.setCenter(flightMap.ui);
-		
+
 		drone.flightController.addMavJsonListener(
 				MavJsonMessage.MAVJSON_MSG_ID_HEARTBEAT,
-        		new MavJsonListener() {
+				new MavJsonListener() {
 					@Override
 					public void receive(JSONObject jsonMessage) {
 						String mode = jsonMessage.getString("mode");
 						flightMap.controller.setMode(mode);
-						
+
 						if(drone.flightController.homeLat == 0.0) {
-                        	drone.flightController.sendGetHomePosition();
-                        }
+							drone.flightController.sendGetHomePosition();
+						}
 					}
 				});
-		
+
 		drone.flightController.addMavJsonListener(
 				MavJsonMessage.MAVJSON_MSG_ID_GLOBAL_POSITION_INT,
-                new MavJsonListener() {
-                    @Override
-                    public void receive(JSONObject jsonMessage) {
-                    	flightMap.controller.setCurrLocation(
-                    			jsonMessage.getDouble("currLat"), 
-                    			jsonMessage.getDouble("currLng"), 
-                    			jsonMessage.getDouble("heading"));
-                    }
-                });
-		
+				new MavJsonListener() {
+					@Override
+					public void receive(JSONObject jsonMessage) {
+						flightMap.controller.setCurrLocation(
+								jsonMessage.getDouble("currLat"),
+								jsonMessage.getDouble("currLng"),
+								jsonMessage.getDouble("heading"));
+					}
+				});
+
 		drone.flightController.addMavJsonListener(
 				MavJsonMessage.MAVJSON_MSG_ID_HOME_POSITION,
-        		new MavJsonListener() {
+				new MavJsonListener() {
 					@Override
 					public void receive(JSONObject jsonMessage) {
 						flightMap.controller.setHomePosition(
-								jsonMessage.getDouble("homeLat"), 
+								jsonMessage.getDouble("homeLat"),
 								jsonMessage.getDouble("homeLng"));
 						btnMissionMake.setDisable(false);
 						btnMissionClear.setDisable(false);
@@ -332,55 +357,55 @@ public class GcsMainController implements Initializable {
 						btnFenceUpload.setDisable(false);
 						btnFenceDownload.setDisable(false);
 						btnFenceEnable.setDisable(false);
-						btnFenceDisable.setDisable(false);						
+						btnFenceDisable.setDisable(false);
 					}
 				});
-		
+
 		drone.flightController.addMavJsonListener(
 				MavJsonMessage.MAVJSON_MSG_ID_MISSION_ACK,
-        		new MavJsonListener() {
+				new MavJsonListener() {
 					@Override
 					public void receive(JSONObject jsonMessage) {
 						flightMap.controller.showInfoLabel("미션 업로드 성공");
 					}
-				});		
-		
+				});
+
 		drone.flightController.addMavJsonListener(
 				MavJsonMessage.MAVJSON_MSG_ID_MISSION_ITEMS,
-                new MavJsonListener() {
-                    @Override
-                    public void receive(JSONObject jsonMessage) {
-                    	flightMap.controller.setMissionItems(jsonMessage.getJSONArray("items"));
-                    	flightMap.controller.showInfoLabel("미션 다운로드 성공");
-                    }
-                });
-		
+				new MavJsonListener() {
+					@Override
+					public void receive(JSONObject jsonMessage) {
+						flightMap.controller.setMissionItems(jsonMessage.getJSONArray("items"));
+						flightMap.controller.showInfoLabel("미션 다운로드 성공");
+					}
+				});
+
 		drone.flightController.addMavJsonListener(
 				MavJsonMessage.MAVJSON_MSG_ID_MISSION_CURRENT,
-                new MavJsonListener() {
-                    @Override
-                    public void receive(JSONObject jsonMessage) {
-                    	flightMap.controller.setMissionCurrent(jsonMessage.getInt("seq"));
-                    }
-                });
-		
+				new MavJsonListener() {
+					@Override
+					public void receive(JSONObject jsonMessage) {
+						flightMap.controller.setMissionCurrent(jsonMessage.getInt("seq"));
+					}
+				});
+
 		drone.flightController.addMavJsonListener(
 				MavJsonMessage.MAVJSON_MSG_ID_FENCE_ACK,
-        		new MavJsonListener() {
+				new MavJsonListener() {
 					@Override
 					public void receive(JSONObject jsonMessage) {
 						flightMap.controller.showInfoLabel("펜스 업로드 성공");
 					}
-				});	
-		
+				});
+
 		drone.flightController.addMavJsonListener(
 				MavJsonMessage.MAVJSON_MSG_ID_FENCE_POINTS,
-                new MavJsonListener() {
-                    @Override
-                    public void receive(JSONObject jsonMessage) {
-                    	flightMap.controller.fenceMapSync(jsonMessage.getJSONArray("points"));
-                    }
-                });
+				new MavJsonListener() {
+					@Override
+					public void receive(JSONObject jsonMessage) {
+						flightMap.controller.fenceMapSync(jsonMessage.getJSONArray("points"));
+					}
+				});
 	}
 	//---------------------------------------------------------------------------------
 	public EventHandler<ActionEvent> btnMessageViewEventHandler = new EventHandler<ActionEvent>() {
@@ -488,7 +513,7 @@ public class GcsMainController implements Initializable {
 				);
 				return;
 			}
-			
+
 			if(isMove == true) {
 				flightMap.controller.mapListenerAdd("manualMove", new MapListener() {
 					@Override
@@ -500,7 +525,7 @@ public class GcsMainController implements Initializable {
 						);
 					}
 				});
-				
+
 				if(isAlt) {
 					flightMap.controller.manualMake(manualAlt);
 				} else {
@@ -528,6 +553,7 @@ public class GcsMainController implements Initializable {
 		@Override
 		public void handle(ActionEvent event) {
 			JSONArray jsonArray = flightMap.controller.getMissionItems();
+
 			if(jsonArray.length() < 2) {
 				AlertDialog.showOkButton("알림", "미션 아이템 수가 부족합니다.");
 			} else {
@@ -600,7 +626,7 @@ public class GcsMainController implements Initializable {
 					}
 				}
 			});
-			
+
 			flightMap.controller.getFencePoints();
 		}
 	};
@@ -653,4 +679,24 @@ public class GcsMainController implements Initializable {
 			drone.flightController.sendFindControl(0, -1); //m/s
 		}
 	};
+
+	public EventHandler<ActionEvent> btnReportListEventHandler = new EventHandler<ActionEvent>() {
+		@Override
+		public void handle(ActionEvent event) {
+			Report.show();
+		}
+	};
+
+	public void reciveReport(){
+			NetworkConfig networkConfig = new NetworkConfig();
+			report.mqttConnect(
+					networkConfig.mqttBrokerConnStr,
+					networkConfig.droneTopic + "/report/sub",
+					networkConfig.droneTopic + "/report/pub"
+			);
+
+	}
+
+
+
 }

@@ -8,8 +8,11 @@ import kosa.team5.drone.network.NetworkConfig;
 import syk.drone.device.Camera;
 import syk.drone.device.FlightController;
 
+import java.awt.image.Raster;
+
 public class RealMain {
-    public static void main(String[] args) {
+
+    public static void main(String[] args) throws Exception {
         NetworkConfig networkConfig = new NetworkConfig();
 
         FlightController flightController = new FlightController();
@@ -21,19 +24,26 @@ public class RealMain {
         );
 
         Camera camera0 = new Camera();
-        camera0.cameraConnect(0, 320, 240, 180);
+        camera0.cameraConnect(0, 320, 240, 270);
         camera0.mattConnect(
                 networkConfig.mqttBrokerConnStr,
-                networkConfig.droneTopic + "/cam0/pub",
-                networkConfig.droneTopic + "/cam0/sub"
+                networkConfig.droneTopic + "/cam1/pub",
+                networkConfig.droneTopic + "/cam1/sub"
         );
 
         Camera camera1 = new Camera();
-        camera1.cameraConnect(1, 320, 240, 0);
+        camera1.cameraConnect(1, 320, 240, 180);
         camera1.mattConnect(
                 networkConfig.mqttBrokerConnStr,
-                networkConfig.droneTopic +"/cam1/pub",
-                networkConfig.droneTopic +"/cam1/sub"
+                networkConfig.droneTopic +"/cam0/pub",
+                networkConfig.droneTopic +"/cam0/sub"
+        );
+
+        ElectroMagnet magnet = new ElectroMagnet();
+        magnet.mqttConnect(
+                networkConfig.mqttBrokerConnStr,
+                networkConfig.droneTopic + "/magnet/pub",
+                networkConfig.droneTopic + "/magnet/sub"
         );
     }
 }
