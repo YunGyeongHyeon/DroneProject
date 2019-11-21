@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.scene.image.*?>
 <?import java.lang.*?>
 <?import javafx.scene.text.*?>
 <?import javafx.geometry.*?>
@@ -11,7 +12,7 @@
 	<left>
 		<VBox maxWidth="350.0" minWidth="350.0" prefWidth="350.0" spacing="5.0" BorderPane.alignment="CENTER">
 			<children>
-				<StackPane fx:id="hudPane" maxHeight="300.0" maxWidth="350.0" minHeight="300.0" minWidth="350.0" prefHeight="300.0" prefWidth="350.0" />
+				<StackPane id="hudPane" fx:id="hudPane" maxHeight="300.0" maxWidth="350.0" minHeight="300.0" minWidth="350.0" prefHeight="300.0" prefWidth="350.0" />
 				<HBox prefWidth="200.0" spacing="5.0" styleClass="pane2">
 					<children>
 						<Button fx:id="btnMessageView" maxWidth="1.7976931348623157E308" minHeight="40.0" mnemonicParsing="false" text="메시지뷰" HBox.hgrow="ALWAYS" />
@@ -112,7 +113,7 @@
 										</HBox>
 										<HBox spacing="10.0">
 											<children>
-												<Button fx:id="btnMissionStart" maxHeight="40.0" maxWidth="1.7976931348623157E308" minHeight="40.0" mnemonicParsing="false" prefHeight="40.0" text="미션 시작" HBox.hgrow="ALWAYS" />
+												<Button fx:id="btnMissionStart" maxHeight="40.0" maxWidth="1.7976931348623157E308" minHeight="40.0" mnemonicParsing="false" prefHeight="40.0" text="드론 출동" HBox.hgrow="ALWAYS" />
 												<Button fx:id="btnMissionStop" maxHeight="40.0" maxWidth="1.7976931348623157E308" minHeight="40.0" mnemonicParsing="false" prefHeight="40.0" text="미션 중지" HBox.hgrow="ALWAYS" />
 											</children>
 										</HBox>
@@ -191,26 +192,27 @@
 	<top>
 		<HBox alignment="CENTER_LEFT" spacing="10.0" BorderPane.alignment="CENTER">
 			<children>
-				<Label alignment="BOTTOM_LEFT" contentDisplay="CENTER" maxWidth="1.7976931348623157E308" text="Ground Control Station">
+            <HBox prefHeight="50.0" prefWidth="79.0">
+               <children>
+                  <ImageView fitHeight="39.0" fitWidth="104.0" pickOnBounds="true" preserveRatio="true">
+                     <image>
+                        <Image url="@symbol.png" />
+                     </image>
+                  </ImageView>
+               </children>
+            </HBox>
+				<Label fx:id="title" alignment="BOTTOM_LEFT" contentDisplay="CENTER" maxWidth="1.7976931348623157E308" text="Drone Special Forces" textFill="#1a91ff">
 					<font>
-						<Font name="Times New Roman Bold Italic" size="34.0" />
+						<Font name="FrankRuehl" size="40.0" />
 					</font>
 				</Label>
-            <Label prefWidth="300.0" style="-fx-text-alignment: center;" text="진행중인 사건" textAlignment="CENTER" HBox.hgrow="ALWAYS">
-               <HBox.margin>
-                  <Insets />
-               </HBox.margin>
-               <font>
-                  <Font size="25.0" />
-               </font>
-            </Label>
-				<HBox alignment="CENTER_RIGHT" prefHeight="40.0" prefWidth="300.0" spacing="5.0" HBox.hgrow="ALWAYS">
+				<HBox alignment="CENTER_RIGHT" prefHeight="40.0" prefWidth="200.0" spacing="5.0" HBox.hgrow="ALWAYS">
 					<children>
 						<Button fx:id="btnReportList" maxHeight="40.0" maxWidth="1.7976931348623157E308" minHeight="40.0" mnemonicParsing="false" text="출동요청 목록" />
-						<Button fx:id="btnAccitend" maxHeight="40.0" maxWidth="1.7976931348623157E308" minHeight="40.0" mnemonicParsing="false" text="사건 발생" />
+						<Button fx:id="btnAccident" maxHeight="40.0" maxWidth="1.7976931348623157E308" minHeight="40.0" mnemonicParsing="false" text="사건 발생" />
 						<Button fx:id="btnLie" maxHeight="40.0" maxWidth="1.7976931348623157E308" minHeight="40.0" mnemonicParsing="false" text="허위 신고" />
 						<Button fx:id="btnPicture" maxHeight="40.0" maxWidth="1.7976931348623157E308" minHeight="40.0" mnemonicParsing="false" text="사진 촬영" />
-						<Button fx:id="btnDropDigestion" maxHeight="40.0" maxWidth="1.7976931348623157E308" minHeight="40.0" mnemonicParsing="false" text="소화액 투하" />
+						<Button fx:id="btnDropDigestion" maxHeight="40.0" maxWidth="1.7976931348623157E308" minHeight="40.0" mnemonicParsing="false" text="소화액 부착" />
 					</children>
 					<HBox.margin>
 						<Insets bottom="5.0" right="10.0" top="5.0" />

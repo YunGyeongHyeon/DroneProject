@@ -37,5 +37,6 @@ public class SimulationMain {
                 logger.info("Device on");
             }
         });
+
     }
 }

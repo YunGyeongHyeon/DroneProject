@@ -322,7 +322,7 @@ public class FlightController {
         jsonObject.put("msgid", MavJsonMessage.MAVJSON_MSG_ID_MISSION_UPLOAD);
         jsonObject.put("items", jsonArray);
         mqttSendToFlightController(jsonObject);
-    }    
+    }
     //---------------------------------------------------------------------------------
     public void sendMissionDownload() {
         JSONObject jsonObject = new JSONObject();

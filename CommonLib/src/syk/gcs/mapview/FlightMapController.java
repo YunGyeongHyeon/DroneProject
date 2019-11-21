@@ -454,7 +454,7 @@ public class FlightMapController implements Initializable {
     }
     //--------------------------------------------------------------------------------------
     public void setMissionItems(JSONArray jsonArray) {
-    	missionItems = new ArrayList<>();
+        missionItems = new ArrayList<>();
         for(int i=0; i<jsonArray.length(); i++) {
             JSONObject jsonObject = jsonArray.getJSONObject(i);
             MissionItem msg = new MissionItem();
@@ -466,7 +466,7 @@ public class FlightMapController implements Initializable {
             msg.setParam4(jsonObject.getFloat("param4"));
 
             if(msg.getStrCommand().equals("RTL")) {
-            	msg.setX(jsonArray.getJSONObject(0).getDouble("x") / 10000000.0);
+                msg.setX(jsonArray.getJSONObject(0).getDouble("x") / 10000000.0);
                 msg.setY(jsonArray.getJSONObject(0).getDouble("y") / 10000000.0);
                 msg.setZ(jsonObject.getFloat("z"));
             } else if(msg.getStrCommand().equals("DELAY") || msg.getStrCommand().equals("ACTION")) {
@@ -482,7 +482,44 @@ public class FlightMapController implements Initializable {
 
             missionItems.add(msg);
         }
-        
+
+        Platform.runLater(() -> {
+            missionTableView.setItems(FXCollections.observableList(missionItems));
+            missionTableView.refresh();
+            missionMapSync();
+        });
+    }
+    //--------------------------------------------------------------------------------------
+    public void setMissionItems2(JSONArray jsonArray) {
+        missionItems = new ArrayList<>();
+        for(int i=0; i<jsonArray.length(); i++) {
+            JSONObject jsonObject = jsonArray.getJSONObject(i);
+            MissionItem msg = new MissionItem();
+            msg.setSeq(jsonObject.getInt("seq"));
+            msg.setCommand(jsonObject.getInt("command"));
+            msg.setParam1(jsonObject.getFloat("param1"));
+            msg.setParam2(jsonObject.getFloat("param2"));
+            msg.setParam3(jsonObject.getFloat("param3"));
+            msg.setParam4(jsonObject.getFloat("param4"));
+
+            if(msg.getStrCommand().equals("RTL")) {
+                msg.setX(jsonArray.getJSONObject(0).getDouble("x"));
+                msg.setY(jsonArray.getJSONObject(0).getDouble("y"));
+                msg.setZ(jsonObject.getFloat("z"));
+            } else if(msg.getStrCommand().equals("DELAY") || msg.getStrCommand().equals("ACTION")) {
+                //FC에서 모두 0으로 세팅해서 보내므로 재설정 필요
+                msg.setX(missionItems.get(missionItems.size()-1).getX());
+                msg.setY(missionItems.get(missionItems.size()-1).getY());
+                msg.setZ(missionItems.get(missionItems.size()-1).getZ());
+            } else {
+                msg.setX(jsonObject.getDouble("x"));
+                msg.setY(jsonObject.getDouble("y"));
+                msg.setZ(jsonObject.getFloat("z"));
+            }
+
+            missionItems.add(msg);
+        }
+
         Platform.runLater(() -> {
             missionTableView.setItems(FXCollections.observableList(missionItems));
             missionTableView.refresh();

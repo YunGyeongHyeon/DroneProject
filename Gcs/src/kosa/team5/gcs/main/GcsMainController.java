@@ -13,6 +13,11 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import kosa.team5.gcs.missionEnd.DroneMissionComplete;
+import kosa.team5.gcs.report.MqttImageService;
+import kosa.team5.gcs.service2.ElectroMagnet;
+import org.eclipse.paho.client.mqttv3.MqttClient;
+import org.eclipse.paho.client.mqttv3.MqttException;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -72,16 +77,23 @@ public class GcsMainController implements Initializable {
 	@FXML public Button btnEast;
 	@FXML public Button btnWest;
 	@FXML public Button btnReportList;
+	@FXML public Button btnAccident;
+	@FXML public Button btnLie;
+	@FXML public Button btnPicture;
+	@FXML public Button btnDropDigestion;
 
 
 
 	public Drone drone;
+	NetworkConfig networkConfig;
 	public String reportLat;
 	public String reportLon;
 	public List<String> reportAll = new ArrayList();
 	public Report report;
 	public int i = 0;
-
+	MqttClient mqttClient;
+	ElectroMagnet magnet ;
+	DroneMissionComplete dmc;
 
 	//---------------------------------------------------------------------------------
 	@Override
@@ -115,19 +127,22 @@ public class GcsMainController implements Initializable {
 		btnWest.setOnAction(btnWestEventHandler);
 
 		btnReportList.setOnAction(btnReportListEventHandler);
-
-
+		btnAccident.setOnAction(btnAccidentEventHandler);
+		btnLie.setOnAction(btnLieEventHandler);
+		btnPicture.setOnAction(btnPictureEventHandler);
+		btnDropDigestion.setOnAction(btnDropDigestionEventHandler);
 
 
 		drone = new Drone();
 		report = new Report();
-
+		magnet = new ElectroMagnet();
+		dmc = new DroneMissionComplete();
 		initHud();
 		initMessageView();
 		initCameraView();
 		initFlightMap();
 		reciveReport();
-
+		connectMagnet();
 
 
 		drone.flightController.addMavJsonListener(
@@ -466,6 +481,7 @@ public class GcsMainController implements Initializable {
 	public EventHandler<ActionEvent> btnArmEventHandler = new EventHandler<ActionEvent>() {
 		@Override
 		public void handle(ActionEvent event) {
+
 			if (btnArm.getText().equals("시동걸기")) {
 				drone.flightController.sendArm(true);
 			} else {
@@ -553,11 +569,15 @@ public class GcsMainController implements Initializable {
 		@Override
 		public void handle(ActionEvent event) {
 			JSONArray jsonArray = flightMap.controller.getMissionItems();
-
+			JSONArray rJsonArray = new JSONArray();
+			for(int i=jsonArray.length()-1;i>=0;i--){
+				rJsonArray.put(jsonArray.get(i));
+			}
 			if(jsonArray.length() < 2) {
 				AlertDialog.showOkButton("알림", "미션 아이템 수가 부족합니다.");
 			} else {
 				drone.flightController.sendMissionUpload(jsonArray);
+				logger.info(String.valueOf(rJsonArray));
 			}
 		}
 	};
@@ -688,15 +708,80 @@ public class GcsMainController implements Initializable {
 	};
 
 	public void reciveReport(){
-			NetworkConfig networkConfig = new NetworkConfig();
+			networkConfig = new NetworkConfig();
 			report.mqttConnect(
 					networkConfig.mqttBrokerConnStr,
 					networkConfig.droneTopic + "/report/sub",
 					networkConfig.droneTopic + "/report/pub"
 			);
+	}
+	MqttImageService mqttImageService = new MqttImageService();
+	public EventHandler<ActionEvent> btnPictureEventHandler = new EventHandler<ActionEvent>() {
+		@Override
+		public void handle(ActionEvent event) {
+			System.out.println("~~~~~~~~~~~~~~~~");
+			if(btnPicture.getText().equals("사진 촬영")){
+				btnPicture.setText("촬영 취소");
+				mqttImageService.sendMessage("on");
+			}else{
+				btnPicture.setText("사진 촬영");
+				mqttImageService.sendMessage("off");
+			}
+		}
 
+	};
+
+	public EventHandler<ActionEvent> btnAccidentEventHandler = new EventHandler<ActionEvent>() {
+		@Override
+		public void handle(ActionEvent event) {
+			try {
+				logger.info("리얼신고");
+				report.accidentSend("Accident");
+			} catch (MqttException e) {
+				e.printStackTrace();
+			}
+		}
+	};
+	public EventHandler<ActionEvent> btnLieEventHandler = new EventHandler<ActionEvent>() {
+		@Override
+		public void handle(ActionEvent event) {
+			try {
+				logger.info("Lie허위신고");
+				report.accidentSend("Lie");
+			} catch (MqttException e) {
+				e.printStackTrace();
+			}
+		}
+	};
+	public void connectMagnet(){
+		magnet.mqttConnect(
+				networkConfig.mqttBrokerConnStr,
+				networkConfig.droneTopic + "/magnet/sub",
+				networkConfig.droneTopic + "/magnet/pub"
+		);
 	}
 
+	public EventHandler<ActionEvent> btnDropDigestionEventHandler = new EventHandler<ActionEvent>() {
+		@Override
+		public void handle(ActionEvent event) {
+			if(btnDropDigestion.getText().equals("소화액 투하")){
+				btnDropDigestion.setText("소화액 부착");
+				try {
+					magnet.magnetOff();
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}else if(btnDropDigestion.getText().equals("소화액 부착")){
+				btnDropDigestion.setText("소화액 투하");
+				try {
+					magnet.magnetOn();;
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
 
+
+		}
+	};
 
 }

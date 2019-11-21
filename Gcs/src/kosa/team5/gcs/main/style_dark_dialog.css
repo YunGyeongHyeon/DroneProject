@@ -1,9 +1,9 @@
 .pane {
-    -fx-background-color: #353535
+    -fx-background-color:  rgba(178, 210, 232, 0.19);
 }
 
 .pane2 {
-    -fx-background-color: #353535;
+    -fx-background-color: rgba(0, 101, 173, 0.92);
     -fx-background-radius: 10;
 }
 
@@ -81,7 +81,7 @@
 }
 
 .table-row-cell:selected {
-    -fx-background-color: #005797;
+    -fx-background-color:  rgba(178, 210, 232, 0.19);
     /*-fx-background-color: red;*/
     -fx-background-insets: 0;
     -fx-background-radius: 1;
@@ -102,7 +102,7 @@
     -fx-background-color: #17181B;
 }
 .tab:selected {
-    -fx-background-color: #21477A;
+    -fx-background-color: rgba(0, 101, 173, 0.92);
 }
 .tab:focused {
     -fx-focus-color: transparent;
@@ -111,7 +111,7 @@
     -fx-padding: 0 30 0 30;
 }
 .tab-pane *.tab-header-background {
-    -fx-background-color: #17181B;
+    -fx-background-color:  rgba(178, 210, 232, 0.19);
 }
 .tab-pane:top *.tab-header-area {
     -fx-background-insets: 0, 0 0 1 0;
@@ -131,7 +131,7 @@
 }
 
 .menu-item:focused {
-     -fx-background-color: #005797;
+     -fx-background-color: rgba(0, 101, 173, 0.92);
 }
 
 .menu-item:focused .label {
